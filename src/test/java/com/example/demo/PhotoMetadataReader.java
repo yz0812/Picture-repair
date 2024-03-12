@@ -10,7 +10,9 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.text.SimpleDateFormat;
@@ -22,7 +24,7 @@ public class PhotoMetadataReader {
     public static void main(String[] args) {
 
 
-        String path = "E:\\照片备份 - 副本 (3)";
+        String path = "E:\\照片备份 - 副本 (4)";
 
         File directory = new File(path);
 
@@ -32,16 +34,15 @@ public class PhotoMetadataReader {
             Date captureDate = getCaptureDate(file);
             if (captureDate != null) {
                 System.out.println("拍摄时间（ExifIFD0）: " + DateUtil.formatDateTime(captureDate));
-                // 设置修改时间
-                // file.setLastModified(captureDate.getTime());
+
                 // 修改文件名称
                 String originalFileName = file.getName();
                 String fileExtension = getFileExtension(originalFileName);
                 String newFileName;
                 if (isVideoFile(fileExtension)) {
-                    newFileName = generateVideoFileName();
+                    newFileName = generateVideoFileName(captureDate);
                 } else {
-                    newFileName = generateImageFileName();
+                    newFileName = generateImageFileName(captureDate);
                 }
                 String newFilePath = file.getParent() + File.separator + newFileName + "." + fileExtension;
                 File newFile = new File(newFilePath);
@@ -54,15 +55,18 @@ public class PhotoMetadataReader {
                     } else {
                         System.out.println("无法重命名文件。");
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     System.out.println("文件已存在。");
                 }
-
+                // 设置修改时间
 
                 // 设置创建时间
                 FileTime creationTime = FileTime.fromMillis(captureDate.getTime());
                 try {
-                    Files.setLastModifiedTime(Paths.get(newFile.getPath()), creationTime);
+                   // Files.setLastModifiedTime(Paths.get(newFile.getPath()), creationTime);
+                    BasicFileAttributeView fileAttributeView = Files.getFileAttributeView(Paths.get(newFile.getPath()), BasicFileAttributeView.class);
+
+                    fileAttributeView.setTimes(creationTime, null, creationTime);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -74,15 +78,15 @@ public class PhotoMetadataReader {
 
     }
 
-    private static String generateImageFileName() {
+    private static String generateImageFileName( Date captureDate) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_hhmmssSSS");
-        String timestamp = dateFormat.format(new Date());
+        String timestamp = dateFormat.format(captureDate);
         return "IMG_" + timestamp;
     }
 
-    private static String generateVideoFileName() {
+    private static String generateVideoFileName( Date captureDate) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_hhmmssSSS");
-        String timestamp = dateFormat.format(new Date());
+        String timestamp = dateFormat.format(captureDate);
         return "MP4_" + timestamp;
     }
 
