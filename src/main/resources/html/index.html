@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Demo</title>
+    <!-- 请勿在项目正式环境中引用该 layui.css 地址 -->
+    <link href="css/layui.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+
+</head>
+<body>
+
+<hr style="margin: 21px 0;">
+<div class="layui-upload">
+    <button type="button" class="layui-btn" id="ID-upload-demo-btn-2">
+        <i class="layui-icon layui-icon-upload"></i> 多图片上传
+    </button>
+
+
+    <div class="gallery" id="imageGallery"></div>
+
+
+    <div class="overlay" id="overlay">
+        <div class="overlay-content">
+            <span class="close-button">&times;</span>
+            <img id="overlayImage" src="" alt="Image">
+            <div class="details">
+                <h2 id="overlayTitle">图片名称</h2>
+                <p id="overlayDescription">图片详细信息</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 请勿在项目正式环境中引用该 layui.js 地址 -->
+<script src="layui.js"></script>
+<script src="jquery-3.7.1.min.js"></script>
+<script>
+    var files = [];
+    layui.use(function () {
+        var upload = layui.upload;
+        var layer = layui.layer;
+        var element = layui.element;
+        var $ = layui.$;
+        // 多图片上传
+        upload.render({
+            elem: '#ID-upload-demo-btn-2',
+            multiple: true,
+            auto: false,
+            choose: function (obj) {
+                // 预读本地文件示例，不支持ie8
+                obj.preview(function (index, file, result) {
+                    files.push(file);
+                    var gallery = document.getElementById('imageGallery');
+
+                    var img = document.createElement('img');
+                    var span = document.createElement('span');
+
+                    img.onload = function () {
+                        var maxWidth = window.innerWidth * 0.5; // 图片占用窗口宽度的一半
+                        var maxHeight = window.innerHeight;
+                        var width = this.width;
+                        var height = this.height;
+                        var ratio = 1;
+
+                        if (width > maxWidth) {
+                            ratio = maxWidth / width;
+                            width = maxWidth;
+                            height = height * ratio;
+                        }
+
+                        if (height > maxHeight) {
+                            ratio = maxHeight / height;
+                            height = maxHeight;
+                            width = width * ratio;
+                        }
+
+                        this.style.width = width + 'px';
+                        this.style.height = height + 'px';
+                    };
+
+                    img.src = URL.createObjectURL(file);
+                    span.textContent = file.name;
+
+                    var galleryItem = document.createElement('div');
+                    galleryItem.setAttribute('id', 'index');
+                    galleryItem.classList.add('gallery-item');
+                    galleryItem.appendChild(img);
+                    galleryItem.appendChild(span);
+
+                    galleryItem.addEventListener('click', function () {
+                        openOverlay(this);
+                    });
+
+                    gallery.appendChild(galleryItem);
+                })
+            }
+
+        });
+
+
+    });
+
+    function openOverlay(item) {
+        var overlay = document.getElementById('overlay');
+        var overlayImage = document.getElementById('overlayImage');
+        var overlayTitle = document.getElementById('overlayTitle');
+        var overlayDescription = document.getElementById('overlayDescription');
+        var closeButton = document.querySelector('.close-button');
+
+        overlayImage.src = item.querySelector('img').src;
+        overlayTitle.textContent = item.querySelector('span').textContent;
+        overlayDescription.textContent = "图片详细信息";
+
+        overlay.classList.add('open');
+        debugger
+        // 添加关闭按钮点击事件
+        closeButton.addEventListener('click', function () {
+            closeOverlay();
+        });
+
+
+        var formData = new FormData();
+        formData.append('file', files[0]); // 将文件添加到FormData对象中
+        $.ajax({
+            url: 'http://127.0.0.1:8080/api/getInfo',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                console.log(response); // 打印响应内容到控制台
+            },
+            error: function (xhr, status, error) {
+                console.error('请求出错：' + error); // 打印错误信息到控制台
+            }
+        });
+    }
+
+    function closeOverlay() {
+        var overlay = document.getElementById('overlay');
+        overlay.classList.remove('open');
+    }
+</script>
+
+</body>
+</html>

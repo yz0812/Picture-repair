@@ -32,7 +32,7 @@ public class ImageMetadataReaderExample {
         try {
             // 指定要读取的图片文件
             //      File file = new File("C:\\Users\\yuanzhang\\Desktop\\IMG_0399.HEIC");
-            File file = new File("C:\\Users\\yuanzhang\\Desktop\\IMG_20240320_01322.jpg");
+            File file = new File("C:\\Users\\yuanzhang\\Desktop\\新建文件夹\\IMG_20240320_01322.jpg");
             // 使用metadata-extractor库读取图片元数据
             Metadata metadata = null;
             metadata = ImageMetadataReader.readMetadata(file);
